@@ -43,7 +43,7 @@
 ## 5. ตั้งค่าแอป
 
 1. Supabase: **Project Settings → API Keys** คัดลอก
-   - **Project URL** (หน้า Data API หรือ Settings → API)
+   - **Project URL** (หน้า Data API หรือปุ่ม Connect) — ใช้แค่ `https://<project-ref>.supabase.co` ไม่ต้องมี `/rest/v1`
    - **Publishable key** (`sb_publishable_...`) — ถ้าโปรเจกต์ยังใช้คีย์แบบเก่า ใช้ **anon public** แทนได้
 2. คัดลอก `.env.example` เป็น `.env.local` แล้วใส่ค่า:
 
