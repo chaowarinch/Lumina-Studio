@@ -121,7 +121,7 @@ export const th = {
     myWork: "ผลงานของฉัน",
     guestNote: "ใช้ Studio ได้โดยไม่ต้องเข้าสู่ระบบ งานจะถูกเก็บไว้ในเบราว์เซอร์นี้เท่านั้น",
     continueGuest: "ใช้งานต่อโดยไม่เข้าสู่ระบบ",
-    notConfigured: "ยังไม่ได้ตั้งค่า Supabase จึงเข้าสู่ระบบไม่ได้ (ดูขั้นตอนใน docs/setup-supabase.md)",
+    notConfigured: "ยังไม่ได้ตั้งค่า Supabase จึงเข้าสู่ระบบไม่ได้ — ใส่ Project URL และ Publishable key จริงใน .env.local แล้วรัน npm run dev ใหม่ (ดู docs/setup-supabase.md)",
     callbackError: "เข้าสู่ระบบไม่สำเร็จ กรุณาลองอีกครั้ง",
     devTitle: "ทดสอบด้วยอีเมล (โหมดพัฒนา)",
     email: "อีเมล",
