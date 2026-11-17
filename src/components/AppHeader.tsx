@@ -5,6 +5,9 @@ import { usePathname } from "next/navigation";
 import { useStudio } from "@/app/studio/store";
 import { th } from "@/lib/i18n/th";
 import { AccountMenu } from "./AccountMenu";
+import { CartButton, CartDrawer } from "./market/CartDrawer";
+import { MarketBootstrap } from "./market/MarketBootstrap";
+import { supabaseConfigured } from "@/lib/supabase/env";
 
 const NAV = [
   { href: "/studio", label: th.nav.studio },
@@ -54,6 +57,13 @@ export function AppHeader() {
         })}
       </nav>
       <div className="flex-1" />
+      {supabaseConfigured && (
+        <>
+          <MarketBootstrap />
+          <CartButton />
+          <CartDrawer />
+        </>
+      )}
       <AccountMenu />
     </header>
   );

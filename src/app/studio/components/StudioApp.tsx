@@ -3,6 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { whenAuthReady } from "@/lib/auth/useAuth";
+import { takePendingImport } from "@/lib/market/preset-import";
+import { th } from "@/lib/i18n/th";
 import { openCloudProject, resolveProjectMedia, startCloudSync, useCloud } from "../cloud";
 import { hydrateStudio, selectedSurface, startAutosave, useStudio } from "../store";
 import { ConflictDialog } from "./ConflictDialog";
@@ -77,9 +79,21 @@ function useCloudRouting() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      await openTarget();
+      // พรีเซ็ตที่ผู้ใช้กด "ใช้ใน Studio" จาก My Downloads
+      const pending = cancelled ? null : takePendingImport();
+      if (pending) {
+        useStudio.getState().appendSurfaces(pending.surfaces);
+        useStudio.getState().showToast(th.downloads.imported(pending.title));
+      }
+    })();
+    async function openTarget() {
       const cloud = useCloud.getState();
       if (!p) {
-        if (cloud.projectId) return router.replace(`/studio?p=${cloud.projectId}`);
+        if (cloud.projectId) {
+          router.replace(`/studio?p=${cloud.projectId}`);
+          return;
+        }
         hydrateStudio();
         const auth = await whenAuthReady();
         if (!cancelled && auth.status === "signed-in") void resolveProjectMedia();
@@ -88,13 +102,16 @@ function useCloudRouting() {
       if (cloud.projectId === p) return;
       const auth = await whenAuthReady();
       if (cancelled) return;
-      if (auth.status !== "signed-in") return router.replace(`/login?next=${encodeURIComponent(`/studio?p=${p}`)}`);
+      if (auth.status !== "signed-in") {
+        router.replace(`/login?next=${encodeURIComponent(`/studio?p=${p}`)}`);
+        return;
+      }
       const ok = await openCloudProject(p);
       if (!ok && !cancelled) {
         hydrateStudio();
         router.replace("/studio");
       }
-    })();
+    }
     return () => {
       cancelled = true;
     };

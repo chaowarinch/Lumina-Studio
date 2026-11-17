@@ -45,6 +45,8 @@ export interface StudioState {
   /** แก้ไขแบบครั้งเดียวพร้อมบันทึกประวัติ */
   commitSurface(id: string, patch: Partial<Surface> | ((s: Surface) => Partial<Surface>)): void;
   addSurface(fx: number): Surface;
+  /** เพิ่มเลเยอร์จากพรีเซ็ต (เช่น สินค้าที่ซื้อ) */
+  appendSurfaces(surfaces: Surface[]): void;
   duplicateSelected(): void;
   deleteSelected(): void;
 
@@ -132,6 +134,12 @@ export const useStudio = create<StudioState>()((set, get) => {
       const s = createSurface(`${EFFECTS[fx].label} ${p.surfaces.length + 1}`, fx, [0.3 + o, 0.25 + o, 0.62 + o, 0.7 + o]);
       commit((p) => ({ ...p, surfaces: [...p.surfaces, s] }), { selectedId: s.id, activePt: -1 });
       return s;
+    },
+    appendSurfaces(surfaces) {
+      if (!surfaces.length) return;
+      const taken = new Set(get().project.surfaces.map((x) => x.id));
+      const fresh = surfaces.map((x) => (taken.has(x.id) ? { ...x, id: crypto.randomUUID().slice(0, 10) } : x));
+      commit((p) => ({ ...p, surfaces: [...p.surfaces, ...fresh] }), { selectedId: fresh.at(-1)!.id, activePt: -1 });
     },
     duplicateSelected() {
       const s = get().project.surfaces.find((x) => x.id === get().selectedId);

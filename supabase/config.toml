@@ -1,0 +1,15 @@
+# ตั้งค่า Supabase CLI สำหรับ deploy Edge Functions (Phase 3)
+# ทุก function ตรวจผู้ใช้เองภายในโค้ด (auth.getUser) — payment-webhook ถูกเรียกโดย Omise จึงไม่มี JWT
+project_id = "lumina-studio"
+
+[functions.checkout]
+verify_jwt = false
+
+[functions.order-sync]
+verify_jwt = false
+
+[functions.payment-webhook]
+verify_jwt = false
+
+[functions.download]
+verify_jwt = false

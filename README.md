@@ -35,7 +35,12 @@ src/engine/              Mapping Engine (TypeScript ล้วน ไม่ผู
 src/app/studio/          Mapping Studio (Zustand store + คอมโพเนนต์)
 src/app/library/         My Projects (คลาวด์)
 src/app/login/, auth/    เข้าสู่ระบบด้วย Google (Supabase Auth)
-src/app/market|creator/  หน้าโครง (Phase 3–4)
+src/app/market/          Marketplace, ตะกร้า, ชำระเงิน, สถานะคำสั่งซื้อ
+src/app/creator/         หน้าโครง (Phase 4)
+src/lib/market/          API สินค้า/ตะกร้า/License, Omise.js, ดาวน์โหลด
+supabase/functions/      Edge Functions: checkout, order-sync, payment-webhook, download
+supabase/seed/           สินค้าตั้งต้น (สร้างจาก scripts/gen-seed-sql.mjs)
+public/market/previews/  วิดีโอ/ภาพตัวอย่างสินค้า (scripts/render-previews)
 src/lib/supabase/        client ฝั่งเบราว์เซอร์/ server, ชนิดข้อมูล DB
 src/lib/cloud/           บันทึกโปรเจกต์, อัปโหลดสื่อ, คิว autosave
 src/lib/auth/            สถานะล็อกอิน
@@ -44,6 +49,7 @@ src/lib/i18n/th.ts       ข้อความ UI ภาษาไทยทั้
 supabase/migrations/     SQL schema + RLS + Storage policies
 supabase/tests/          ทดสอบ RLS
 docs/setup-supabase.md   คู่มือตั้งค่า Supabase + Google OAuth
+docs/setup-payments.md   คู่มือตั้งค่า Marketplace + Omise + Edge Functions
 ```
 
 ## การบันทึกงาน
@@ -61,3 +67,9 @@ docs/setup-supabase.md   คู่มือตั้งค่า Supabase + Goog
 `{ "app": "LUMINA STUDIO", "version": 2, "project": { name, dur, surfaces[] } }`
 — เข้ากันได้กับไฟล์ที่ส่งออกจากต้นแบบ, ตรวจด้วย schema ก่อนนำเข้าทุกครั้ง
 `surface.media` เก็บ id ของสื่อบนคลาวด์ (uuid ใน `media_assets`) ส่วนสื่อในเครื่องจะถูกล้างเมื่อบันทึกเป็นไฟล์
+
+## Marketplace
+
+ซื้อ → `checkout` (Edge Function) คิดราคาจากฐานข้อมูล สร้าง order และ charge ของ Omise
+(PromptPay QR / บัตรผ่าน Omise.js + 3-D Secure) → `payment-webhook` / `order-sync` ยืนยันกับ Omise
+→ `mark_order_paid` ออก License → `download` สร้างลิงก์ที่หมดอายุใน 10 นาที (จำกัด 20 ครั้ง/วัน)

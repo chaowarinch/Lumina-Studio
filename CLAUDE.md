@@ -22,7 +22,7 @@
 - `src/app/library/` – My Projects / My Downloads
 - `src/app/creator/` – Creator Center
 - `src/lib/supabase/` – client และ query
-- `supabase/migrations/` – SQL schema
+- `supabase/migrations/` – SQL schema · `supabase/seed/` – สินค้าตั้งต้น · `supabase/functions/` – Edge Functions
 
 ## กติกาการทำงาน
 - ทำทีละ Phase ตาม roadmap ด้านล่าง วางแผนก่อนเขียนโค้ด และให้ผู้ใช้อนุมัติแผนก่อน
@@ -30,12 +30,14 @@
 - ทุกข้อความ UI เป็นภาษาไทย ใช้ฟอนต์ IBM Plex Sans Thai (ข้อความรวมไว้ที่ `src/lib/i18n/th.ts`)
 - ห้าม commit คีย์ลับ ใช้ `.env.local` และ `.env.example`
 - รัน `npm run lint` และ `npm test` ให้ผ่านก่อนบอกว่างานเสร็จ (แก้ migration แล้วรัน `npm run test:db` ด้วย)
-- ข้อมูลผู้ใช้เข้าถึงผ่าน Supabase client ฝั่งเบราว์เซอร์ + RLS เท่านั้น ห้ามใช้ service role key ในแอป
+- ข้อมูลผู้ใช้เข้าถึงผ่าน Supabase client ฝั่งเบราว์เซอร์ + RLS เท่านั้น ห้ามใช้ service role key ในแอป Next.js
+- งานที่ต้องใช้สิทธิ์สูง (ชำระเงิน, ออก License, ดาวน์โหลด) อยู่ใน Supabase Edge Functions (`supabase/functions/`) ตรรกะอยู่ใน `_shared/handlers.ts` (ทดสอบด้วย Vitest) และเรียกฟังก์ชัน SQL ที่ให้สิทธิ์เฉพาะ service_role
+- เงินเก็บเป็นสตางค์ (integer) และคิดราคาจากฐานข้อมูลเสมอ ไม่เชื่อค่าจากเบราว์เซอร์
 
 ## Roadmap
 1. ✅ พอร์ต Mapping Engine จากต้นแบบเป็น TypeScript modules + หน้า Studio
 2. ✅ Supabase: สมัครสมาชิก/ล็อกอิน (Google), บันทึกโปรเจกต์บนคลาวด์, อัปโหลดสื่อ
-3. Marketplace จริง: สินค้า, ตะกร้า, ชำระเงิน (test mode), License, ลิงก์ดาวน์โหลดหมดอายุ
+3. 🔶 Marketplace จริง: สินค้า, ตะกร้า, ชำระเงิน Omise (test mode), License, ลิงก์ดาวน์โหลดหมดอายุ — โค้ดเสร็จ รอทดสอบกับ Omise test mode จริง
 4. Creator Center: วางขาย, ค่าคอมมิชชัน, รายงานรายได้, payout
 5. Desktop Output (Electron/Tauri): multi-projector, edge blending, sync, interactive sensor
 6. 3D Mapping: นำเข้า glTF และ UV projection

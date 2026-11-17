@@ -6,6 +6,11 @@ cd "$(dirname "$0")/.."
 DB="lumina_test_$$"
 createdb "$DB"
 trap 'dropdb --if-exists "$DB"' EXIT
-psql -q -v ON_ERROR_STOP=1 -d "$DB" -f supabase/tests/local_supabase_stub.sql
-for f in supabase/migrations/*.sql; do psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$f"; done
-psql -q -t -A -o /dev/null -v ON_ERROR_STOP=1 -d "$DB" -f supabase/tests/rls_test.sql 2>&1 | sed "s/^psql:[^ ]* //"
+run() { psql -q -v ON_ERROR_STOP=1 -d "$DB" "$@"; }
+run -f supabase/tests/local_supabase_stub.sql
+for f in supabase/migrations/*.sql; do run -f "$f"; done
+run -f supabase/seed/official_products.sql
+for t in supabase/tests/*_test.sql; do
+  echo "== $t"
+  run -t -A -o /dev/null -f "$t" 2>&1 | sed "s/^psql:[^ ]* //"
+done

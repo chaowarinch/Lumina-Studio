@@ -16,6 +16,7 @@ import {
   type CloudProjectSummary,
 } from "@/lib/cloud/projects";
 import { th } from "@/lib/i18n/th";
+import { DownloadsSection } from "./DownloadsSection";
 
 const fmtDate = (iso: string) =>
   new Date(iso).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" });
@@ -150,8 +151,7 @@ export function LibraryApp() {
         </ul>
       )}
 
-      <h3 className="mt-8">{th.library.downloads}</h3>
-      <Empty>{th.library.downloadsSoon}</Empty>
+      {status === "signed-in" && <DownloadsSection />}
 
       <Modal open={!!renaming} onClose={() => setRenaming(null)} title={th.library.rename}>
         {renaming && (

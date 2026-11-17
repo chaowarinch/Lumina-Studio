@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/ComingSoon";
+import { Suspense } from "react";
 import { th } from "@/lib/i18n/th";
+import { MarketApp } from "./MarketApp";
 
-export const metadata: Metadata = { title: `${th.soon.market.title} · ${th.app.name}` };
+export const metadata: Metadata = { title: `${th.market.title} · ${th.app.name}` };
 
 export default function Page() {
-  return <ComingSoon {...th.soon.market} />;
+  return (
+    <main className="mx-auto max-w-[1240px] px-[max(4vw,16px)] pt-6 pb-16">
+      <Suspense>
+        <MarketApp />
+      </Suspense>
+    </main>
+  );
 }
