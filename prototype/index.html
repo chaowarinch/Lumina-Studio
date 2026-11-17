@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LUMINA STUDIO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a professional projection-mapping console — quiet chrome, the light is the star
+   IDEA: a dark lighting desk beside a projector throw onto a building facade
+   PICTURE: the live WebGL stage, a facade lit by warped, masked effects
+   COLOUR and TYPE: graphite fields, lamp-coral accent, teal for "live"; IBM Plex Sans Thai
+   LAYOUT: layers | stage + timeline | inspector; other tabs are calm full-width sheets */
+:root{color-scheme:dark;--bg:#0d0e11;--pn:#15171b;--pn2:#1c1f24;--ln:#2a2e35;--ink:#eceef2;--mu:#9aa1ad;--ac:#ff5a3c;--ac2:#ff8a70;--ok:#2ec4b6;--warn:#f5b301}
+:root[data-theme=light],:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans Thai",system-ui,sans-serif;overflow-x:clip}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:var(--pn2);border:1px solid var(--ln);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+button:hover{border-color:#3d434d;background:#23272d}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac2);outline-offset:1px}
+button.pri{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+button.pri:hover{background:#ff6e54}
+button.on{border-color:var(--ac);color:var(--ac2);background:#2a1a17}
+button.ghost{background:none}
+button:disabled{opacity:.45;cursor:default}
+input[type=text],input[type=number],input[type=search],select,textarea{background:#0f1114;border:1px solid var(--ln);border-radius:8px;padding:7px 10px;font-size:15px;width:100%}
+input[type=range]{width:100%;accent-color:var(--ac)}
+label{font-size:13px;color:var(--mu)}
+h2{font-size:22px;margin:0 0 4px;line-height:1.2}
+h3{font-size:15px;margin:0 0 8px}
+.mu{color:var(--mu)}.sm{font-size:13px}
+header{display:flex;align-items:center;gap:14px;height:56px;padding:0 14px;border-bottom:1px solid var(--ln);background:#0a0b0d;position:sticky;top:0;z-index:20}
+.logo{font-weight:700;letter-spacing:.5px;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.logo i{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff 0 15%,var(--ac) 45%,transparent 72%);box-shadow:0 0 14px var(--ac)}
+nav{display:flex;gap:4px;overflow-x:auto}
+nav button{background:none;border-color:transparent;white-space:nowrap}
+nav button.act{background:var(--pn2);border-color:var(--ln);color:#fff}
+#pname{max-width:200px;background:none;border-color:transparent}
+#pname:hover,#pname:focus{border-color:var(--ln)}
+.sp{flex:1}
+.view{display:none}.view.act{display:block}
+.studio.act{display:grid;grid-template-columns:250px minmax(0,1fr) 300px;height:calc(100vh - 56px)}
+.panel{background:var(--pn);overflow:auto;padding:12px}
+.left{border-right:1px solid var(--ln)}.right{border-left:1px solid var(--ln)}
+.center{display:flex;flex-direction:column;overflow:auto;background:#08090b}
+.tools{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;border-bottom:1px solid var(--ln);background:var(--pn);align-items:center}
+.tools .sep{width:1px;height:24px;background:var(--ln);margin:0 2px}
+.stagewrap{padding:14px;display:flex;justify-content:center;flex:1;min-height:0}
+.stage{position:relative;width:100%;max-width:min(100%,calc((100vh - 330px)*16/9));aspect-ratio:16/9;background:#000;border-radius:6px;overflow:hidden;box-shadow:0 0 0 1px var(--ln),0 20px 60px #000}
+.stage>*{position:absolute;inset:0;width:100%;height:100%}
+.stage img{object-fit:cover;opacity:.9}
+.stage #gl{mix-blend-mode:screen}
+.stage.noref #gl{mix-blend-mode:normal}
+.stage.noref img{display:none}
+.stage #ov{cursor:crosshair;touch-action:none}
+.stage:fullscreen{max-width:none;border-radius:0;background:#000}
+.stage:fullscreen img,.stage:fullscreen #ov{display:none}
+.stage:fullscreen #gl{mix-blend-mode:normal}
+.badge{position:absolute;inset:auto auto 10px 10px;width:auto;height:auto;font-size:12px;background:#000a;padding:3px 8px;border-radius:6px;pointer-events:none}
+.tl{border-top:1px solid var(--ln);background:var(--pn);padding:10px 12px}
+.tlrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.time{font-variant-numeric:tabular-nums;min-width:110px}
+.tracks{margin-top:8px;display:grid;gap:4px;max-height:130px;overflow:auto}
+.trk{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;align-items:center;font-size:13px;cursor:pointer}
+.trk .bar{position:relative;height:18px;background:#0f1114;border-radius:4px}
+.trk .bar i{position:absolute;top:2px;bottom:2px;border-radius:3px;background:#3a3f48}
+.trk.sel .bar i{background:var(--ac)}
+.trk .bar b{position:absolute;top:0;bottom:0;width:2px;background:var(--ok)}
+.trk span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lay{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;border:1px solid transparent;cursor:pointer;margin-bottom:4px}
+.lay:hover{background:var(--pn2)}
+.lay.sel{border-color:var(--ac);background:#221714}
+.lay .sw{width:30px;height:20px;border-radius:4px;flex:none;background-size:cover}
+.lay .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lay button{min-height:28px;padding:2px 8px;font-size:12px}
+.addfx{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.addfx button{font-size:13px;padding:6px 8px;text-align:left}
+.sec{border-top:1px solid var(--ln);padding-top:12px;margin-top:12px}
+.row{display:grid;grid-template-columns:96px minmax(0,1fr) 44px;gap:8px;align-items:center;margin:6px 0}
+.row output{font-size:12px;color:var(--mu);text-align:right;font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg{display:flex;gap:4px}.seg button{flex:1}
+.meter{height:6px;background:#0f1114;border-radius:3px;overflow:hidden;width:90px}.meter i{display:block;height:100%;background:var(--ok);width:0}
+.sheet{max-width:1240px;margin:0 auto;padding:24px max(4vw,16px) 60px}
+.shead{display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between;margin-bottom:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border-radius:20px;font-size:13px;min-height:32px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.card img{width:100%;aspect-ratio:16/9;display:block;background:#000;cursor:pointer}
+.card .bd{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card .pr{font-weight:700;white-space:nowrap}
+.card .ft{display:flex;gap:6px;margin-top:auto}.card .ft button{flex:1}
+.tag{font-size:12px;color:var(--mu);border:1px solid var(--ln);border-radius:10px;padding:0 8px;white-space:nowrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:14px}
+.kpi b{display:block;font-size:clamp(22px,3vw,30px);line-height:1.2;white-space:nowrap}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:18px}
+.box{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:16px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--mu);font-weight:500;border-bottom:1px solid var(--ln);padding:8px 6px}
+td{border-bottom:1px solid #22262c;padding:8px 6px;vertical-align:middle}
+td.n,th.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.empty{color:var(--mu);padding:24px;text-align:center;border:1px dashed var(--ln);border-radius:12px}
+.note{font-size:12px;color:var(--mu);margin-top:8px}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.act{display:flex}
+.dlg{background:var(--pn);border:1px solid var(--ln);border-radius:14px;max-width:760px;width:100%;max-height:92vh;overflow:auto;padding:18px}
+.dlg canvas,.dlg img,.dlg video{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;display:block}
+.dhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+#cart{position:fixed;top:56px;right:0;bottom:0;width:min(380px,100%);background:var(--pn);border-left:1px solid var(--ln);z-index:40;padding:16px;transform:translateX(100%);transition:transform .2s;overflow:auto}
+#cart.act{transform:none}
+.ci{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--ln)}
+.ci img{width:72px;aspect-ratio:16/9;border-radius:6px}
+.ci div{flex:1}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#22262c;border:1px solid var(--ln);padding:10px 16px;border-radius:10px;z-index:60;display:none;max-width:90vw}
+#toast.act{display:block}
+.pay{display:grid;gap:8px;margin:12px 0}
+.pay label{display:flex;gap:10px;align-items:center;border:1px solid var(--ln);border-radius:10px;padding:10px;color:var(--ink);font-size:15px;cursor:pointer}
+.key{font-family:ui-monospace,monospace;font-size:13px;color:var(--ok)}
+@media(max-width:1000px){.studio.act{grid-template-columns:minmax(0,1fr);height:auto}.left,.right{border:0;border-top:1px solid var(--ln)}.center{order:-1}.stage{max-width:100%}.cols{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){header{flex-wrap:wrap;height:auto;padding:8px}#pname{display:none}.trk{grid-template-columns:80px minmax(0,1fr)}table{font-size:13px}}
+@media(prefers-reduced-motion:reduce){#cart{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><i></i>LUMINA STUDIO</div>
+  <input id="pname" type="text" aria-label="ชื่อโปรเจกต์">
+  <nav>
+    <button data-v="studio" class="act">Mapping Studio</button>
+    <button data-v="market">Marketplace</button>
+    <button data-v="lib">ผลงานของฉัน</button>
+    <button data-v="creator">Creator Center</button>
+  </nav>
+  <div class="sp"></div>
+  <button id="cartBtn" class="ghost">ตะกร้า (<span id="cartN">0</span>)</button>
+</header>
+
+<section class="view studio act" id="v-studio">
+  <aside class="panel left">
+    <h3>เลเยอร์ / พื้นที่ฉาย</h3>
+    <div id="layers"></div>
+    <div class="sec"><h3>เพิ่มพื้นที่ฉาย</h3><div class="addfx" id="addfx"></div></div>
+    <div class="sec">
+      <h3>ภาพอ้างอิงฉาก</h3>
+      <p class="sm mu" style="margin:0 0 8px">วางภาพถ่ายอาคารหรือวัตถุจริงไว้ใต้งาน เพื่อจัดตำแหน่งให้ตรง ภาพนี้ไม่ถูกฉายออกไป</p>
+      <div class="two"><button id="refT">ซ่อนฉาก</button><label class="sm" style="display:contents"><button id="refL">ใช้ภาพของฉัน</button></label></div>
+      <input id="refF" type="file" accept="image/*" hidden>
+    </div>
+  </aside>
+
+  <main class="center">
+    <div class="tools">
+      <button id="tWarp" class="on" title="ปรับจุด (V)">ปรับจุด</button>
+      <button id="tMask" title="วาดมาสก์ (M)">วาดมาสก์</button>
+      <span class="sep"></span>
+      <button id="guides" class="on">เส้นนำ</button>
+      <button id="test">ภาพทดสอบ</button>
+      <span class="sep"></span>
+      <button id="undo" title="Ctrl+Z">เลิกทำ</button>
+      <button id="redo" title="Ctrl+Shift+Z">ทำซ้ำ</button>
+      <span class="sep"></span>
+      <button id="xPng">PNG</button>
+      <button id="xWebm">วิดีโอ WebM</button>
+      <button id="xJson">ไฟล์โปรเจกต์</button>
+      <button id="xImp">นำเข้า</button><input id="impF" type="file" accept=".json,application/json" hidden>
+      <div class="sp"></div>
+      <button id="proj" class="pri">ฉายเต็มจอ</button>
+    </div>
+    <div class="stagewrap">
+      <div class="stage" id="stage">
+        <img id="ref" alt="">
+        <canvas id="gl" width="1920" height="1080"></canvas>
+        <canvas id="ov"></canvas>
+        <div class="badge" id="badge"></div>
+      </div>
+    </div>
+    <div class="tl">
+      <div class="tlrow">
+        <button id="play" class="pri" style="min-width:80px">หยุด</button>
+        <span class="time" id="time">00:00.0 / 00:10.0</span>
+        <input id="scrub" type="range" min="0" max="10" step="0.01" style="flex:1;min-width:140px" aria-label="ตำแหน่งเวลา">
+        <label>ความยาว (วิ)</label><input id="dur" type="number" min="2" max="120" step="1" style="width:76px">
+        <span class="sep"></span>
+        <button id="audL">เพลง / Audio Reactive</button><input id="audF" type="file" accept="audio/*" hidden>
+        <span class="meter" title="ระดับเสียง"><i id="lvl"></i></span>
+      </div>
+      <div class="tracks" id="tracks"></div>
+    </div>
+  </main>
+
+  <aside class="panel right" id="insp"></aside>
+</section>
+
+<section class="view" id="v-market"><div class="sheet">
+  <div class="shead">
+    <div><h2>Mapping Marketplace</h2><div class="mu">ไฟล์ Projection Mapping สำเร็จรูป เปิดดูตัวอย่างแบบเคลื่อนไหวได้ก่อนซื้อ แล้วนำเข้า Studio ได้ทันที</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="q" type="search" placeholder="ค้นหาผลงาน" style="width:220px"><select id="sort" style="width:auto"><option value="new">ล่าสุด</option><option value="lo">ราคาต่ำ–สูง</option><option value="hi">ราคาสูง–ต่ำ</option></select></div>
+  </div>
+  <div class="chips" id="cats" style="margin-bottom:14px"></div>
+  <div class="grid" id="mgrid"></div>
+  <p class="note">รายการสินค้า ผู้ขาย และราคาเป็นข้อมูลตัวอย่างของต้นแบบ</p>
+</div></section>
+
+<section class="view" id="v-lib"><div class="sheet">
+  <div class="shead"><div><h2>ผลงานของฉัน</h2><div class="mu">โปรเจกต์ที่บันทึกไว้ และไฟล์ที่ซื้อจาก Marketplace</div></div><button id="saveP" class="pri">บันทึกโปรเจกต์ปัจจุบัน</button></div>
+  <h3>My Projects</h3><div class="grid" id="plist" style="margin-bottom:28px"></div>
+  <h3>My Downloads</h3><div id="dlist"></div>
+  <p class="note">ข้อมูลเก็บไว้ในเบราว์เซอร์นี้เท่านั้น ภาพและวิดีโอที่นำเข้าไม่ถูกบันทึกไปกับโปรเจกต์</p>
+</div></section>
+
+<section class="view" id="v-creator"><div class="sheet">
+  <div class="shead"><div><h2>Creator Center</h2><div class="mu">วางขายผลงาน ตั้งราคา และติดตามรายได้</div></div>
+    <div style="display:flex;gap:8px;align-items:center"><label for="comm">ค่าคอมมิชชันแพลตฟอร์ม (%)</label><input id="comm" type="number" min="0" max="60" style="width:80px"><button id="simS">จำลองยอดขาย</button></div></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="cols">
+    <div class="box">
+      <h3>วางขายผลงานใหม่</h3>
+      <form id="pub">
+        <label>ชื่อผลงาน</label><input id="pubN" type="text" required maxlength="60" placeholder="เช่น Neon Facade Loop">
+        <div class="two" style="margin-top:8px"><div><label>หมวดหมู่</label><select id="pubC"></select></div><div><label>ราคา (บาท)</label><input id="pubP" type="number" min="0" step="10" value="490" required></div></div>
+        <label style="display:block;margin-top:8px">คำอธิบาย</label><textarea id="pubD" rows="2" maxlength="200"></textarea>
+        <p class="sm mu">เอฟเฟกต์และค่าที่ปรับไว้จะคัดลอกจากเลเยอร์ที่เลือกใน Studio: <b id="pubFrom"></b></p>
+        <button class="pri" type="submit">วางขาย</button>
+      </form>
+    </div>
+    <div class="box"><h3>สินค้าของฉัน</h3><div id="mine"></div><h3 style="margin-top:18px">รายการขายล่าสุด</h3><div id="sales"></div></div>
+  </div>
+  <p class="note">ยอดขายตั้งต้นเป็นข้อมูลตัวอย่าง ปุ่ม "จำลองยอดขาย" ใช้ทดสอบระบบคำนวณรายได้</p>
+</div></section>
+
+<aside id="cart" aria-label="ตะกร้า">
+  <div class="dhead"><h3 style="margin:0">ตะกร้าสินค้า</h3><button id="cartX" class="ghost">ปิด</button></div>
+  <div id="citems"></div>
+  <div style="display:flex;justify-content:space-between;margin:14px 0;font-weight:700"><span>รวม</span><span id="ctot"></span></div>
+  <button id="checkout" class="pri" style="width:100%">ชำระเงิน</button>
+</aside>
+
+<div class="modal" id="modal"><div class="dlg" id="dlg"></div></div>
+<div id="toast"></div>
+
+<script>
+{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const baht=n=>'฿'+Math.round(n).toLocaleString('th-TH');
+const fmtT=s=>{const m=Math.floor(s/60),x=s-m*60;return String(m).padStart(2,'0')+':'+x.toFixed(1).padStart(4,'0')};
+const toast=m=>{const e=$('#toast');e.textContent=m;e.classList.add('act');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('act'),2600)};
+
+/* ---------- effects ---------- */
+const FX=[
+ {th:'สื่อ (ภาพ/วิดีโอ)',d:{hue:0}},
+ {th:'Neon',d:{hue:.92}},
+ {th:'Spectrum',d:{hue:.0}},
+ {th:'Energy Pulse',d:{hue:.55}},
+ {th:'Digital Grid',d:{hue:.5}},
+ {th:'Golden Aura',d:{hue:.09}},
+ {th:'Particle Field',d:{hue:.6}},
+ {th:'Geometric Prism',d:{hue:.75}},
+];
+const DEF={intensity:1,speed:1,hue:.5,scale:1,opacity:1,feather:0,audio:0};
+const SL=[['intensity','ความสว่าง',0,2,.01],['speed','ความเร็ว',0,4,.01],['hue','โทนสี',0,1,.005],['scale','สเกลลาย',.2,4,.01],['opacity','ความทึบ',0,1,.01],['feather','ขอบนุ่ม',0,.3,.005],['audio','ตอบสนองเสียง',0,1,.01]];
+const CATS={building:'Building Mapping',cube:'Cube Mapping',organic:'Organic Mapping',abstract:'Abstract Light Art',particle:'Particle Effects',geometric:'3D Geometric'};
+
+/* ---------- geometry ---------- */
+function homog(q){const[x0,y0]=q[0],[x1,y1]=q[1],[x2,y2]=q[2],[x3,y3]=q[3];const sx=x0-x1+x2-x3,sy=y0-y1+y2-y3;let a,b,c,d,e,f,g=0,h=0;
+ if(Math.abs(sx)<1e-9&&Math.abs(sy)<1e-9){a=x1-x0;b=x2-x1;c=x0;d=y1-y0;e=y2-y1;f=y0}
+ else{const dx1=x1-x2,dx2=x3-x2,dy1=y1-y2,dy2=y3-y2,den=dx1*dy2-dx2*dy1||1e-9;g=(sx*dy2-dx2*sy)/den;h=(dx1*sy-sx*dy1)/den;a=x1-x0+g*x1;b=x3-x0+h*x3;c=x0;d=y1-y0+g*y1;e=y3-y0+h*y3;f=y0}
+ return(u,v)=>{const w=g*u+h*v+1;return[(a*u+b*v+c)/w,(d*u+e*v+f)/w]}}
+function posFn(s){const n=s.n,P=(i,j)=>s.pts[j*(n+1)+i];
+ if(s.mode==='pin')return homog([P(0,0),P(1,0),P(1,1),P(0,1)]);
+ return(u,v)=>{const fu=u*n,fv=v*n,i=Math.min(n-1,Math.floor(fu)),j=Math.min(n-1,Math.floor(fv)),a=fu-i,b=fv-j,p=P(i,j),q=P(i+1,j),r=P(i,j+1),t=P(i+1,j+1);
+  return[(1-a)*(1-b)*p[0]+a*(1-b)*q[0]+(1-a)*b*r[0]+a*b*t[0],(1-a)*(1-b)*p[1]+a*(1-b)*q[1]+(1-a)*b*r[1]+a*b*t[1]]}}
+function setMode(s,mode,n){const f=posFn(s);n=mode==='pin'?1:n;const pts=[];for(let j=0;j<=n;j++)for(let i=0;i<=n;i++)pts.push(f(i/n,j/n));s.mode=mode;s.n=n;s.pts=pts}
+function outline(s,k=24){const f=posFn(s),o=[];for(let i=0;i<k;i++)o.push(f(i/k,0));for(let i=0;i<k;i++)o.push(f(1,i/k));for(let i=k;i>0;i--)o.push(f(i/k,1));for(let i=k;i>0;i--)o.push(f(0,i/k));return o}
+function inPoly(p,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const[a,b]=poly[i],[x,y]=poly[j];if((b>p[1])!==(y>p[1])&&p[0]<(x-a)*(p[1]-b)/(y-b)+a)c=!c}return c}
+const SUB=24;
+function meshData(s){const f=posFn(s),N=SUB,g=[];for(let j=0;j<=N;j++)for(let i=0;i<=N;i++)g.push(f(i/N,j/N));const out=new Float32Array(N*N*24);let k=0;
+ const V=(i,j)=>{const p=g[j*(N+1)+i];out[k++]=p[0];out[k++]=p[1];out[k++]=i/N;out[k++]=j/N};
+ for(let j=0;j<N;j++)for(let i=0;i<N;i++){V(i,j);V(i+1,j);V(i,j+1);V(i+1,j);V(i+1,j+1);V(i,j+1)}return out}
+
+/* ---------- media ---------- */
+const media=new Map(); // id -> {el,type,ver,url}
+
+/* ---------- WebGL renderer ---------- */
+const VS=`attribute vec2 p;attribute vec2 uv;varying vec2 v;void main(){v=uv;gl_Position=vec4(p.x*2.-1.,1.-p.y*2.,0.,1.);}`;
+const FS=`precision highp float;varying vec2 v;uniform float T,K,HU,SC,FE,OP;uniform int FX;uniform sampler2D TX;uniform float HT;
+vec3 hsv(vec3 c){vec3 p=abs(fract(c.xxx+vec3(0.,2./3.,1./3.))*6.-3.);return c.z*mix(vec3(1.),clamp(p-1.,0.,1.),c.y);}
+float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float ns(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1.,0.)),f.x),mix(h21(i+vec2(0.,1.)),h21(i+vec2(1.,1.)),f.x),f.y);}
+float fbm(vec2 p){float s=0.,a=.5;for(int i=0;i<5;i++){s+=a*ns(p);p*=2.03;a*=.5;}return s;}
+void main(){vec2 u=v;vec3 c=vec3(0.);float a=1.;
+ if(FX==0){if(HT>.5){vec4 s=texture2D(TX,u);c=s.rgb*K;a=s.a;}else{c=vec3(.12+.08*step(.5,fract((u.x+u.y)*8.)));}}
+ else if(FX==1){float d=min(min(u.x,1.-u.x),min(u.y,1.-u.y));float g=.010/(abs(d-.035)+.010);float m=fract(T*.25);float g2=.006/(abs(d-m*.5)+.006);c=hsv(vec3(HU+d*.4,.85,1.))*(g+g2*.8)*K*.55;}
+ else if(FX==2){float b=fract(HU+u.x*SC*.6-T*.1+.08*sin(u.y*6.+T));c=hsv(vec3(b,.85,1.))*(.55+.45*sin(u.y*SC*9.-T*2.))*K;}
+ else if(FX==3){float r=length(u-.5)*2.;float ring=pow(max(sin(r*SC*10.-T*4.),0.),6.);c=hsv(vec3(HU+r*.15,.7,1.))*(ring+.22/(r*5.+.3))*K;}
+ else if(FX==4){vec2 g=u*SC*12.;float l=max(step(.93,fract(g.x)),step(.93,fract(g.y)));float sc=exp(-pow((fract(T*.2)-u.y)*10.,2.));float cell=step(.86,h21(floor(g)+floor(T*3.)))*.35;c=hsv(vec3(HU,.6,1.))*(l*(.3+sc*1.2)+cell+sc*.15)*K;}
+ else if(FX==5){float n=fbm(u*SC*3.+vec2(T*.15,-T*.1));float gl=n*n*1.8*(1.-length(u-.5)*.9);c=hsv(vec3(HU+n*.06,.8-n*.45,1.))*gl*K;}
+ else if(FX==6){float s=0.;for(int i=0;i<3;i++){float fi=float(i);vec2 g=u*SC*(7.+fi*6.)+vec2(0.,T*(.25+fi*.18));vec2 id=floor(g);vec2 f=fract(g)-.5;float r=h21(id+fi*7.);vec2 p=vec2(r-.5,fract(r*13.)-.5)*.6;float d=length(f-p);s+=.03/(d*d*14.+.03)*step(.45,r)*(.55+.45*sin(T*3.+r*30.));}c=hsv(vec3(HU,.45,1.))*s*K*1.1;}
+ else if(FX==7){vec2 g=u*SC*8.;vec2 id=floor(g),f=fract(g);float tr=step(f.x,f.y);float ph=h21(id+tr);float w=.5+.5*sin(T*2.+ph*6.28+(id.x+id.y)*.4);float edge=1.-.7*step(.96,max(f.x,f.y));c=hsv(vec3(HU+tr*.08,.6,1.))*mix(.12,1.,w)*edge*K;}
+ else{c=vec3(.06);vec2 g=fract(u*10.);if(min(g.x,g.y)<.03)c=vec3(.75);float d=min(min(u.x,1.-u.x),min(u.y,1.-u.y));if(d<.012)c=vec3(1.,.25,.2);if(abs(length(u-.5)-.33)<.006)c=vec3(.2,1.,.6);if(abs(u.x-.5)<.004||abs(u.y-.5)<.006)c=vec3(.3,.7,1.);if(u.x<.12&&u.y<.12)c=vec3(1.,.9,.2);}
+ if(FE>0.){a*=smoothstep(0.,FE,u.x)*smoothstep(0.,FE,1.-u.x)*smoothstep(0.,FE,u.y)*smoothstep(0.,FE,1.-u.y);}
+ a*=OP;gl_FragColor=vec4(c*a,a);}`;
+function Renderer(cv){
+ const gl=cv.getContext('webgl',{stencil:true,preserveDrawingBuffer:true,premultipliedAlpha:true,antialias:true});
+ if(!gl)return null;
+ const sh=(t,src)=>{const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s};
+ const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);gl.useProgram(pr);
+ const U={};['T','K','HU','SC','FE','OP','FX','TX','HT'].forEach(n=>U[n]=gl.getUniformLocation(pr,n));
+ const ap=gl.getAttribLocation(pr,'p'),au=gl.getAttribLocation(pr,'uv');
+ const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+ gl.enableVertexAttribArray(ap);gl.enableVertexAttribArray(au);
+ gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true);
+ const texs=new Map();
+ function tex(id){const m=media.get(id);if(!m)return null;let e=texs.get(id);
+  if(!e){e={t:gl.createTexture(),v:-1};texs.set(id,e);gl.bindTexture(gl.TEXTURE_2D,e.t);[gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T].forEach(p=>gl.texParameteri(gl.TEXTURE_2D,p,gl.CLAMP_TO_EDGE));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR)}
+  gl.bindTexture(gl.TEXTURE_2D,e.t);
+  try{if(m.type==='video'){if(m.el.readyState>=2){gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,m.el);e.v=1}}else if(e.v!==m.ver){gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,m.el);e.v=m.ver}}catch(_){}
+  return e.v===-1?null:e.t}
+ function geo(d){gl.bufferData(gl.ARRAY_BUFFER,d,gl.DYNAMIC_DRAW);gl.vertexAttribPointer(ap,2,gl.FLOAT,false,16,0);gl.vertexAttribPointer(au,2,gl.FLOAT,false,16,8)}
+ return{draw(list,t,o={}){
+  gl.viewport(0,0,cv.width,cv.height);gl.clearColor(0,0,0,1);gl.clearStencil(0);gl.clear(gl.COLOR_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);gl.enable(gl.BLEND);
+  for(const s of list){if(!s.vis)continue;const end=s.tout??o.dur??1e9;if(t<s.tin||t>end)continue;
+   const fade=o.nofade?1:clamp(Math.min((t-s.tin)/.5,(end-t)/.5),0,1);const p=s.p;
+   const masked=s.mask&&s.mask.length>=3;
+   if(masked){gl.enable(gl.STENCIL_TEST);gl.clear(gl.STENCIL_BUFFER_BIT);gl.colorMask(false,false,false,false);gl.stencilFunc(gl.ALWAYS,0,1);gl.stencilOp(gl.KEEP,gl.KEEP,gl.INVERT);
+    const fd=new Float32Array(s.mask.length*4);s.mask.forEach((q,i)=>{fd[i*4]=q[0];fd[i*4+1]=q[1]});geo(fd);gl.drawArrays(gl.TRIANGLE_FAN,0,s.mask.length);
+    gl.colorMask(true,true,true,true);gl.stencilFunc(s.maskInv?gl.EQUAL:gl.NOTEQUAL,0,1);gl.stencilOp(gl.KEEP,gl.KEEP,gl.KEEP)}
+   else gl.disable(gl.STENCIL_TEST);
+   const fx=o.test?8:s.fx;let tx=null;if(fx===0&&s.media)tx=tex(s.media);
+   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tx);gl.uniform1i(U.TX,0);gl.uniform1f(U.HT,tx?1:0);
+   gl.uniform1i(U.FX,fx);gl.uniform1f(U.T,t*p.speed);gl.uniform1f(U.K,p.intensity*(1+(o.aud||0)*p.audio*2));gl.uniform1f(U.HU,p.hue);gl.uniform1f(U.SC,p.scale);gl.uniform1f(U.FE,p.feather);gl.uniform1f(U.OP,p.opacity*fade);
+   if(s.blend==='add')gl.blendFunc(gl.ONE,gl.ONE);else gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+   const md=meshData(s);geo(md);gl.drawArrays(gl.TRIANGLES,0,md.length/4)}
+  gl.disable(gl.STENCIL_TEST)}}}
+
+/* ---------- state ---------- */
+const store={get(){try{return JSON.parse(localStorage.getItem('lumina.v2')||'null')}catch(_){return null}},set(v){try{localStorage.setItem('lumina.v2',JSON.stringify(v))}catch(_){}}};
+function mkS(name,fx,r,p={},extra={}){const[x0,y0,x1,y1]=r;return{id:uid(),name,fx,p:{...DEF,...FX[fx].d,...p},blend:'add',mode:'pin',n:1,pts:[[x0,y0],[x1,y0],[x0,y1],[x1,y1]],mask:[],maskInv:false,media:null,tin:0,tout:null,vis:true,...extra}}
+function arch(x0,y0,x1,y1){const cx=(x0+x1)/2,rx=(x1-x0)/2,ry=rx*16/9,m=[[x0,y1],[x0,y0+ry]];for(let i=1;i<16;i++){const a=Math.PI-i*Math.PI/16;m.push([cx+Math.cos(a)*rx,y0+ry-Math.sin(a)*ry])}m.push([x1,y0+ry],[x1,y1]);return m}
+function sampleProject(){const s=[
+ mkS('ผนังซ้าย',2,[0,0,1,1],{scale:1.2},{pts:[[.2,.2],[.42,.24],[.2,.92],[.42,.9]]}),
+ mkS('ผนังขวา',4,[0,0,1,1],{scale:.9},{pts:[[.58,.24],[.8,.2],[.58,.9],[.8,.92]],tin:1}),
+ mkS('ซุ้มประตู',3,[.44,.42,.56,.9],{scale:.8},{mask:arch(.445,.43,.555,.9)}),
+ mkS('หน้าจั่ว',1,[.42,.12,.58,.38],{intensity:1.3},{mask:[[.5,.13],[.578,.375],[.422,.375]]}),
+ mkS('ประกายด้านหน้า',6,[.18,.1,.82,.95],{opacity:.7,scale:1.4},{tin:3,tout:9})];
+ return{name:'Facade Show – ตัวอย่าง',dur:10,surfaces:s,ref:'sample'}}
+const SEEDM=[
+ ['Neon Facade Outline','Studio Prism','building',890,1,{hue:.92}],['Rainbow Wall Sweep','Nok Visuals','building',690,2,{scale:1.4}],['Cube Pulse Pack','Lanna Light Lab','cube',490,3,{hue:.6,scale:.7}],
+ ['Matrix Grid Cube','Studio Prism','cube',590,4,{hue:.35}],['Golden Temple Aura','Siam Mapping Co.','organic',1290,5,{hue:.1,scale:1.2}],['Liquid Light Form','Nok Visuals','organic',790,5,{hue:.55,scale:2}],
+ ['Spectrum Drift','Lanna Light Lab','abstract',390,2,{scale:.5,speed:.6}],['Violet Pulse Rings','Studio Prism','abstract',350,3,{hue:.78,scale:1.6}],['Starfall Particles','Siam Mapping Co.','particle',590,6,{hue:.12}],
+ ['Ocean Sparkle','Nok Visuals','particle',450,6,{hue:.52,scale:1.6}],['Prism Triangles','Lanna Light Lab','geometric',690,7,{hue:.75}],['Tumbling Facets','Siam Mapping Co.','geometric',1490,7,{hue:.05,scale:1.8,speed:.6}]
+].map(([name,by,cat,price,fx,p],i)=>({id:'m'+i,name,by,cat,price,fx,p:{...DEF,...FX[fx].d,...p},desc:'ไฟล์ลูป '+FX[fx].th+' สำหรับงาน '+CATS[cat],t:i}));
+let S=store.get()||{};
+S.projects??=[];S.purchases??=[];S.cart??=[];S.comm??=20;
+S.mine??=[{id:'u1',name:'Lotus Bloom Loop',by:'คุณ',cat:'organic',price:590,fx:5,p:{...DEF,hue:.95,scale:1.3},desc:'ลูปแสงดอกบัวสำหรับวัตถุทรงอิสระ',t:100},{id:'u2',name:'Facade Grid Scan',by:'คุณ',cat:'building',price:790,fx:4,p:{...DEF,hue:.08},desc:'สแกนกริดสำหรับหน้าอาคาร',t:101}];
+S.sales??=[['u1',590,'12 พ.ย.'],['u2',790,'13 พ.ย.'],['u1',590,'14 พ.ย.'],['u2',790,'15 พ.ย.'],['u1',590,'16 พ.ย.']].map(([item,price,date])=>({item,price,date}));
+let P=S.current||sampleProject();
+const save=()=>{S.current=P;store.set(S)};
+let sel=P.surfaces[0]?.id,tool='warp',playing=true,t=0,guides=true,testOn=false,refOn=true,refURL=null,activePt=-1;
+const cur=()=>P.surfaces.find(s=>s.id===sel);
+const allItems=()=>[...SEEDM,...S.mine];
+
+/* ---------- undo ---------- */
+let UND=[],RED=[];
+const snap=()=>{UND.push(JSON.stringify(P.surfaces));if(UND.length>60)UND.shift();RED=[]};
+function undo(r){const A=r?RED:UND,B=r?UND:RED;if(!A.length)return;B.push(JSON.stringify(P.surfaces));P.surfaces=JSON.parse(A.pop());if(!cur())sel=P.surfaces[0]?.id;renderAll();save()}
+
+/* ---------- reference scene ---------- */
+function sampleRef(){let w='';for(const[x0,x1,y0]of[[340,650,250],[950,1260,250]])for(let r=0;r<4;r++)for(let c=0;c<4;c++)w+=`<rect x="${x0+20+c*72}" y="${y0+40+r*130}" width="40" height="70" fill="#1d2230"/>`;
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900"><defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05060c"/><stop offset="1" stop-color="#151a2a"/></linearGradient><linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4f5c"/><stop offset="1" stop-color="#2b2f39"/></linearGradient></defs><rect width="1600" height="900" fill="url(#s)"/><rect y="830" width="1600" height="70" fill="#0b0d12"/><polygon points="320,180 672,216 672,810 320,828" fill="url(#w)"/><polygon points="928,216 1280,180 1280,828 928,810" fill="url(#w)"/><rect x="672" y="338" width="256" height="472" fill="#3d424e"/><polygon points="672,338 800,117 928,338" fill="#474c59"/>${w}<path d="M712 810 V430 A88 88 0 0 1 888 430 V810Z" fill="#1a1e27"/></svg>`;
+ return'data:image/svg+xml,'+encodeURIComponent(svg)}
+function applyRef(){const st=$('#stage');$('#ref').src=refURL||sampleRef();st.classList.toggle('noref',!refOn);$('#refT').textContent=refOn?'ซ่อนฉาก':'แสดงฉาก'}
+
+/* ---------- renderer setup ---------- */
+const glc=$('#gl'),R=Renderer(glc),ov=$('#ov'),ctx=ov.getContext('2d');
+if(!R)$('#badge').textContent='เบราว์เซอร์นี้ไม่รองรับ WebGL';
+const prevC=document.createElement('canvas');prevC.width=480;prevC.height=270;const PR=Renderer(prevC);
+const thumbs={};
+function full(fx,p){return{...mkS('x',fx,[0,0,1,1]),p}}
+function thumb(it){if(thumbs[it.id])return thumbs[it.id];if(!PR)return'';PR.draw([full(it.fx,it.p)],3.2,{nofade:1});return thumbs[it.id]=prevC.toDataURL('image/jpeg',.85)}
+
+/* ---------- overlay ---------- */
+function sizeOv(){const r=ov.getBoundingClientRect(),d=devicePixelRatio||1;ov.width=Math.round(r.width*d);ov.height=Math.round(r.height*d)}
+new ResizeObserver(sizeOv).observe(ov);
+function drawOv(){const W=ov.width,H=ov.height,d=devicePixelRatio||1;ctx.clearRect(0,0,W,H);if(!guides)return;
+ const X=p=>[p[0]*W,p[1]*H];ctx.lineWidth=1*d;ctx.font=`${12*d}px "IBM Plex Sans Thai",sans-serif`;
+ for(const s of P.surfaces){if(!s.vis)continue;const on=s.id===sel,o=outline(s);ctx.beginPath();o.forEach((p,i)=>{const[x,y]=X(p);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();
+  ctx.strokeStyle=on?'#ff5a3c':'rgba(255,255,255,.35)';ctx.lineWidth=(on?2:1)*d;ctx.stroke();
+  const lp=X(s.pts[0]);ctx.fillStyle=on?'#ff8a70':'rgba(255,255,255,.6)';ctx.fillText(s.name,lp[0]+6*d,lp[1]-6*d);
+  if(!on)continue;const f=posFn(s);
+  if(s.mode==='mesh'){ctx.strokeStyle='rgba(255,138,112,.55)';ctx.lineWidth=d;for(let k=1;k<s.n;k++){for(const dir of[0,1]){ctx.beginPath();for(let m=0;m<=24;m++){const[x,y]=X(dir?f(k/s.n,m/24):f(m/24,k/s.n));m?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke()}}}
+  if(tool==='warp')s.pts.forEach((p,i)=>{const[x,y]=X(p);ctx.beginPath();ctx.arc(x,y,(i===activePt?8:6)*d,0,7);ctx.fillStyle=i===activePt?'#ff5a3c':'#fff';ctx.fill();ctx.strokeStyle='#000';ctx.stroke()});
+  if(s.mask.length){ctx.setLineDash([6*d,4*d]);ctx.strokeStyle='#2ec4b6';ctx.lineWidth=1.5*d;ctx.beginPath();s.mask.forEach((p,i)=>{const[x,y]=X(p);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});if(tool!=='mask'||s.mask.length>2)ctx.closePath();ctx.stroke();ctx.setLineDash([]);
+   if(tool==='mask')s.mask.forEach(p=>{const[x,y]=X(p);ctx.fillStyle='#2ec4b6';ctx.fillRect(x-4*d,y-4*d,8*d,8*d)})}}}
+let drag=null;
+const norm=e=>{const r=ov.getBoundingClientRect();return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]};
+const near=(a,b)=>{const r=ov.getBoundingClientRect();return Math.hypot((a[0]-b[0])*r.width,(a[1]-b[1])*r.height)<12};
+ov.addEventListener('pointerdown',e=>{const p=norm(e),s=cur();ov.setPointerCapture(e.pointerId);
+ if(tool==='mask'&&s){const i=s.mask.findIndex(q=>near(q,p));snap();if(i>=0)drag={k:'m',i};else{s.mask.push(p);drag={k:'m',i:s.mask.length-1};renderInsp()}return}
+ if(s){const i=s.pts.findIndex(q=>near(q,p));if(i>=0){snap();activePt=i;drag={k:'p',i};return}}
+ for(let k=P.surfaces.length-1;k>=0;k--){const q=P.surfaces[k];if(q.vis&&inPoly(p,outline(q,8))){if(sel!==q.id){sel=q.id;activePt=-1;renderAll()}snap();drag={k:'all',last:p};return}}});
+ov.addEventListener('pointermove',e=>{if(!drag)return;const p=norm(e).map(v=>clamp(v,-.2,1.2)),s=cur();if(!s)return;
+ if(drag.k==='p')s.pts[drag.i]=p;else if(drag.k==='m')s.mask[drag.i]=p;
+ else{const dx=p[0]-drag.last[0],dy=p[1]-drag.last[1];s.pts=s.pts.map(q=>[q[0]+dx,q[1]+dy]);s.mask=s.mask.map(q=>[q[0]+dx,q[1]+dy]);drag.last=p}});
+ov.addEventListener('pointerup',()=>{if(drag){drag=null;save()}});
+ov.addEventListener('dblclick',()=>{if(tool==='mask'){setTool('warp');toast('ปิดรูปมาสก์แล้ว')}});
+
+/* ---------- studio UI ---------- */
+function swatch(s){const it={id:'sw'+s.fx+JSON.stringify(s.p),fx:s.fx,p:s.p};return s.fx===0?'':thumb(it)}
+function renderLayers(){$('#layers').innerHTML=[...P.surfaces].reverse().map(s=>`<div class="lay ${s.id===sel?'sel':''}" data-id="${s.id}"><span class="sw" style="background-image:url('${swatch(s)}');background-color:#222"></span><span class="nm">${esc(s.name)}</span><button data-a="vis" aria-label="แสดง/ซ่อน">${s.vis?'แสดง':'ซ่อน'}</button></div>`).join('')||'<p class="mu sm">ยังไม่มีพื้นที่ฉาย</p>'}
+$('#layers').addEventListener('click',e=>{const l=e.target.closest('.lay');if(!l)return;const s=P.surfaces.find(x=>x.id===l.dataset.id);if(e.target.dataset.a==='vis'){s.vis=!s.vis;save()}sel=s.id;activePt=-1;renderAll()});
+$('#addfx').innerHTML=FX.map((f,i)=>`<button data-fx="${i}">+ ${f.th}</button>`).join('');
+$('#addfx').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;snap();const fx=+b.dataset.fx,o=.05*(P.surfaces.length%5);const s=mkS(FX[fx].th+' '+(P.surfaces.length+1),fx,[.3+o,.25+o,.62+o,.7+o]);P.surfaces.push(s);sel=s.id;renderAll();save();if(fx===0)pickMedia()});
+function renderInsp(){const s=cur(),el=$('#insp');if(!s){el.innerHTML='<p class="mu">เลือกเลเยอร์เพื่อปรับค่า</p>';return}
+ el.innerHTML=`<h3>คุณสมบัติเลเยอร์</h3>
+ <label>ชื่อ</label><input type="text" id="iN" value="${esc(s.name)}">
+ <div class="two" style="margin-top:8px"><div><label>เอฟเฟกต์</label><select id="iFx">${FX.map((f,i)=>`<option value="${i}" ${i===s.fx?'selected':''}>${f.th}</option>`).join('')}</select></div>
+ <div><label>การผสมแสง</label><select id="iB"><option value="add" ${s.blend==='add'?'selected':''}>Additive</option><option value="normal" ${s.blend==='normal'?'selected':''}>Normal</option></select></div></div>
+ ${s.fx===0?`<button id="iMed" style="width:100%;margin-top:8px">${s.media?'เปลี่ยนภาพ/วิดีโอ':'เลือกภาพหรือวิดีโอ'}</button>`:''}
+ <div class="sec">${SL.map(([k,l,a,b,st])=>`<div class="row"><label for="s_${k}">${l}</label><input type="range" id="s_${k}" data-k="${k}" min="${a}" max="${b}" step="${st}" value="${s.p[k]}"><output>${(+s.p[k]).toFixed(2)}</output></div>`).join('')}</div>
+ <div class="sec"><h3>รูปทรงการฉาย</h3><div class="seg"><button id="mPin" class="${s.mode==='pin'?'on':''}">Corner Pin</button><button id="mMesh" class="${s.mode==='mesh'?'on':''}">Mesh Warp</button></div>
+ ${s.mode==='mesh'?`<div class="row"><label>ความละเอียด</label><select id="mN">${[2,3,4,5,6].map(n=>`<option ${n===s.n?'selected':''} value="${n}">${n}×${n}</option>`).join('')}</select><span></span></div>`:''}
+ <p class="sm mu">ลากจุดสีขาวเพื่อดัดภาพ ลากกลางพื้นที่เพื่อย้าย ใช้ลูกศรขยับจุดที่เลือกทีละน้อย (Shift = ละเอียดน้อยลง)</p>
+ <button id="mReset" style="width:100%">รีเซ็ตเป็นสี่เหลี่ยม</button></div>
+ <div class="sec"><h3>Masking</h3><p class="sm mu" style="margin:0 0 8px">${s.mask.length>=3?`มาสก์ ${s.mask.length} จุด`:'ยังไม่มีมาสก์'} · กด "วาดมาสก์" แล้วคลิกบนเวทีทีละจุด ดับเบิลคลิกเพื่อจบ</p>
+ <div class="two"><button id="kInv" class="${s.maskInv?'on':''}">${s.maskInv?'ตัดด้านใน':'แสดงด้านใน'}</button><button id="kClr">ล้างมาสก์</button></div></div>
+ <div class="sec"><h3>ไทม์ไลน์</h3><div class="two"><div><label>เริ่ม (วิ)</label><input type="number" id="tIn" min="0" step=".1" value="${s.tin}"></div><div><label>จบ (วิ)</label><input type="number" id="tOut" min="0" step=".1" value="${s.tout??P.dur}"></div></div><p class="sm mu">เลเยอร์จะเฟดเข้าและออก 0.5 วินาที</p></div>
+ <div class="sec two"><button id="dup">ทำสำเนา</button><button id="del">ลบเลเยอร์</button></div>`;
+ $('#iN').oninput=e=>{s.name=e.target.value;renderLayers();renderTracks();save()};
+ $('#iFx').onchange=e=>{snap();s.fx=+e.target.value;s.p.hue=FX[s.fx].d.hue??s.p.hue;renderAll();save();if(s.fx===0&&!s.media)pickMedia()};
+ $('#iB').onchange=e=>{s.blend=e.target.value;save()};
+ $('#iMed')&&($('#iMed').onclick=pickMedia);
+ el.querySelectorAll('input[data-k]').forEach(r=>{r.onpointerdown=snap;r.oninput=()=>{s.p[r.dataset.k]=+r.value;r.nextElementSibling.textContent=(+r.value).toFixed(2);save()};r.onchange=renderLayers});
+ $('#mPin').onclick=()=>{if(s.mode==='pin')return;snap();setMode(s,'pin',1);activePt=-1;renderInsp();save()};
+ $('#mMesh').onclick=()=>{if(s.mode==='mesh')return;snap();setMode(s,'mesh',3);activePt=-1;renderInsp();save()};
+ $('#mN')&&($('#mN').onchange=e=>{snap();setMode(s,'mesh',+e.target.value);activePt=-1;save()});
+ $('#mReset').onclick=()=>{snap();const o=outline(s,4),xs=o.map(p=>p[0]),ys=o.map(p=>p[1]);const r=[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)];s.mode='pin';s.n=1;s.pts=[[r[0],r[1]],[r[2],r[1]],[r[0],r[3]],[r[2],r[3]]];activePt=-1;renderInsp();save()};
+ $('#kInv').onclick=()=>{s.maskInv=!s.maskInv;renderInsp();save()};
+ $('#kClr').onclick=()=>{snap();s.mask=[];renderInsp();save()};
+ $('#tIn').onchange=e=>{s.tin=Math.max(0,+e.target.value||0);renderTracks();save()};
+ $('#tOut').onchange=e=>{s.tout=Math.max(s.tin+.5,+e.target.value||P.dur);renderTracks();save()};
+ $('#dup').onclick=()=>{snap();const c=JSON.parse(JSON.stringify(s));c.id=uid();c.name+=' (สำเนา)';c.pts=c.pts.map(p=>[p[0]+.03,p[1]+.03]);c.mask=c.mask.map(p=>[p[0]+.03,p[1]+.03]);P.surfaces.push(c);sel=c.id;renderAll();save()};
+ $('#del').onclick=delSel}
+function delSel(){const s=cur();if(!s)return;snap();P.surfaces=P.surfaces.filter(x=>x!==s);sel=P.surfaces.at(-1)?.id;renderAll();save();toast('ลบเลเยอร์แล้ว · กดเลิกทำเพื่อคืนค่า')}
+function renderTracks(){$('#tracks').innerHTML=[...P.surfaces].reverse().map(s=>{const e=s.tout??P.dur;return`<div class="trk ${s.id===sel?'sel':''}" data-id="${s.id}"><span>${esc(s.name)}</span><div class="bar"><i style="left:${s.tin/P.dur*100}%;width:${Math.max(0,(Math.min(e,P.dur)-s.tin)/P.dur*100)}%"></i><b class="ph"></b></div></div>`}).join('')}
+$('#tracks').addEventListener('click',e=>{const r=e.target.closest('.trk');if(r){sel=r.dataset.id;activePt=-1;renderAll()}});
+function setTool(x){tool=x;$('#tWarp').classList.toggle('on',x==='warp');$('#tMask').classList.toggle('on',x==='mask');ov.style.cursor=x==='mask'?'copy':'crosshair'}
+$('#tWarp').onclick=()=>setTool('warp');$('#tMask').onclick=()=>{if(!cur())return toast('เลือกเลเยอร์ก่อน');setTool('mask')};
+$('#guides').onclick=e=>{guides=!guides;e.target.classList.toggle('on',guides)};
+$('#test').onclick=e=>{testOn=!testOn;e.target.classList.toggle('on',testOn)};
+$('#undo').onclick=()=>undo(0);$('#redo').onclick=()=>undo(1);
+$('#refT').onclick=()=>{refOn=!refOn;applyRef()};
+$('#refL').onclick=()=>$('#refF').click();
+$('#refF').onchange=e=>{const f=e.target.files[0];if(!f)return;if(refURL)URL.revokeObjectURL(refURL);refURL=URL.createObjectURL(f);refOn=true;applyRef();e.target.value=''};
+function pickMedia(){$('#medF')?.remove();const i=document.createElement('input');i.type='file';i.accept='image/*,video/*';i.id='medF';i.hidden=true;document.body.append(i);
+ i.onchange=()=>{const f=i.files[0],s=cur();if(!f||!s)return;const url=URL.createObjectURL(f),id=uid();
+  if(f.type.startsWith('video')){const v=document.createElement('video');v.src=url;v.muted=true;v.loop=true;v.playsInline=true;v.play().catch(()=>{});media.set(id,{el:v,type:'video',ver:1})}
+  else{const im=new Image();im.onload=()=>{media.set(id,{el:im,type:'image',ver:Date.now()})};im.src=url}
+  s.media=id;s.fx=0;renderAll();save()};i.click()}
+$('#pname').oninput=e=>{P.name=e.target.value;save()};
+$('#dur').onchange=e=>{P.dur=clamp(+e.target.value||10,2,120);e.target.value=P.dur;$('#scrub').max=P.dur;renderTracks();save()};
+$('#play').onclick=()=>{playing=!playing;$('#play').textContent=playing?'หยุด':'เล่น'};
+$('#scrub').oninput=e=>{t=+e.target.value};
+$('#proj').onclick=async()=>{try{await $('#stage').requestFullscreen();toast('โหมดฉายเต็มจอ · กด Esc เพื่อออก')}catch(_){toast('เบราว์เซอร์ไม่อนุญาตเต็มจอในหน้าต่างนี้ ลองเปิดหน้านี้ในแท็บใหม่')}};
+addEventListener('keydown',e=>{if(e.target.matches('input,textarea,select'))return;const k=e.key.toLowerCase();
+ if((e.ctrlKey||e.metaKey)&&k==='z'){e.preventDefault();undo(e.shiftKey);return}
+ if(k===' '){e.preventDefault();$('#play').click()}else if(k==='v')setTool('warp');else if(k==='m')$('#tMask').click();
+ else if(k==='delete'||k==='backspace'){if(cur())delSel()}
+ else if(k.startsWith('arrow')&&cur()&&activePt>=0){e.preventDefault();const s=cur(),st=e.shiftKey?.01:.001,p=s.pts[activePt];if(!e.repeat)snap();if(k==='arrowleft')p[0]-=st;if(k==='arrowright')p[0]+=st;if(k==='arrowup')p[1]-=st;if(k==='arrowdown')p[1]+=st;save()}});
+
+/* ---------- audio ---------- */
+let AN=null,AD=null,audEl=null,level=0;
+$('#audL').onclick=()=>$('#audF').click();
+$('#audF').onchange=e=>{const f=e.target.files[0];if(!f)return;try{if(!audEl){audEl=new Audio();audEl.loop=true;const AC=new(window.AudioContext||window.webkitAudioContext)();const src=AC.createMediaElementSource(audEl);AN=AC.createAnalyser();AN.fftSize=256;AD=new Uint8Array(AN.frequencyBinCount);src.connect(AN);AN.connect(AC.destination);audEl.ac=AC}
+ audEl.src=URL.createObjectURL(f);audEl.ac.resume();audEl.play().then(()=>{$('#audL').textContent='♪ '+f.name.slice(0,22);toast('เปิดเสียงแล้ว ปรับ "ตอบสนองเสียง" ในแต่ละเลเยอร์')}).catch(()=>toast('เล่นเสียงไม่ได้ในหน้าต่างนี้'))}catch(_){toast('เบราว์เซอร์นี้ไม่รองรับ Audio Reactive')}e.target.value=''};
+
+/* ---------- export ---------- */
+let DL=null;(async()=>{try{if(window.claude?.use)DL=await window.claude.use('downloads')}catch(_){}})();
+function modal(h){$('#dlg').innerHTML=h;$('#modal').classList.add('act')}
+const closeM=()=>{$('#modal').classList.remove('act');$('#dlg').innerHTML='';mPrev=null};
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal'||e.target.dataset.x!==undefined)closeM()});
+async function offer(fn,blob,fallback){if(DL){try{await DL.save({filename:fn,data:blob});toast('บันทึกไฟล์แล้ว: '+fn);return}catch(e){if(e?.code==='declined')return;}}fallback()}
+const fname=ext=>(P.name||'lumina').replace(/[^\w฀-๿-]+/g,'_').slice(0,40)+'.'+ext;
+function jsonFallback(txt,title){modal(`<div class="dhead"><h3 style="margin:0">${title}</h3><button data-x>ปิด</button></div><textarea rows="12" readonly>${esc(txt)}</textarea><button id="cp" class="pri" style="margin-top:8px">คัดลอก</button>`);$('#cp').onclick=()=>navigator.clipboard.writeText(txt).then(()=>toast('คัดลอกแล้ว'),()=>toast('คัดลอกไม่ได้ เลือกข้อความแล้วคัดลอกเอง'))}
+$('#xPng').onclick=()=>{R&&R.draw(P.surfaces,t,{dur:P.dur,test:testOn,aud:level});glc.toBlob(b=>{const u=URL.createObjectURL(b);offer(fname('png'),b,()=>modal(`<div class="dhead"><h3 style="margin:0">ภาพ PNG 1920×1080</h3><button data-x>ปิด</button></div><img src="${u}" alt="ภาพส่งออก"><p class="sm mu">คลิกขวาที่ภาพแล้วเลือกบันทึกภาพ</p>`))},'image/png')};
+$('#xJson').onclick=()=>{const txt=JSON.stringify({app:'LUMINA STUDIO',version:2,project:P},null,1);offer(fname('json'),txt,()=>jsonFallback(txt,'ไฟล์โปรเจกต์ (JSON)'))};
+$('#xImp').onclick=()=>$('#impF').click();
+$('#impF').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());const np=d.project||d;if(!Array.isArray(np.surfaces))throw 0;snap();P=np;P.surfaces.forEach(s=>s.media=null);sel=P.surfaces[0]?.id;renderAll();save();toast('นำเข้าโปรเจกต์แล้ว')}catch(_){toast('ไฟล์ไม่ใช่โปรเจกต์ LUMINA')}e.target.value=''};
+$('#xWebm').onclick=()=>{if(!glc.captureStream||!window.MediaRecorder)return toast('เบราว์เซอร์นี้บันทึกวิดีโอไม่ได้');const dur=Math.min(P.dur,30);
+ const mt=['video/webm;codecs=vp9','video/webm'].find(m=>MediaRecorder.isTypeSupported(m));const rec=new MediaRecorder(glc.captureStream(30),{mimeType:mt,videoBitsPerSecond:8e6});const ch=[];
+ rec.ondataavailable=e=>e.data.size&&ch.push(e.data);rec.onstop=()=>{const b=new Blob(ch,{type:'video/webm'});const u=URL.createObjectURL(b);$('#xWebm').disabled=false;$('#xWebm').textContent='วิดีโอ WebM';offer(fname('webm'),b,()=>modal(`<div class="dhead"><h3 style="margin:0">วิดีโอ WebM</h3><button data-x>ปิด</button></div><video src="${u}" controls autoplay loop muted></video><p class="sm mu">คลิกขวาที่วิดีโอเพื่อบันทึก</p>`))};
+ t=0;playing=true;$('#play').textContent='หยุด';rec.start(250);$('#xWebm').disabled=true;let left=dur;$('#xWebm').textContent='กำลังบันทึก '+left+' วิ';
+ const iv=setInterval(()=>{left--;$('#xWebm').textContent='กำลังบันทึก '+left+' วิ';if(left<=0){clearInterval(iv);rec.stop()}},1000)};
+
+/* ---------- marketplace ---------- */
+let cat='all';
+$('#cats').innerHTML=[['all','ทั้งหมด'],...Object.entries(CATS)].map(([k,v])=>`<button data-c="${k}" class="${k==='all'?'on':''}">${v}</button>`).join('');
+$('#cats').onclick=e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.c;$$('#cats button').forEach(x=>x.classList.toggle('on',x===b));renderMarket()};
+$('#q').oninput=renderMarket;$('#sort').onchange=renderMarket;
+const owned=id=>S.purchases.some(p=>p.item===id)||S.mine.some(m=>m.id===id);
+function renderMarket(){const q=$('#q').value.trim().toLowerCase(),so=$('#sort').value;
+ let L=allItems().filter(i=>(cat==='all'||i.cat===cat)&&(!q||(i.name+i.by+CATS[i.cat]).toLowerCase().includes(q)));
+ L.sort((a,b)=>so==='lo'?a.price-b.price:so==='hi'?b.price-a.price:b.t-a.t);
+ $('#mgrid').innerHTML=L.map(i=>`<div class="card"><img src="${thumb(i)}" alt="${esc(i.name)}" data-pv="${i.id}"><div class="bd"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(i.name)}</b><span class="pr">${baht(i.price)}</span></div><div class="sm mu">โดย ${esc(i.by)}</div><div><span class="tag">${CATS[i.cat]}</span></div>
+  <div class="ft"><button data-pv="${i.id}">ดูตัวอย่าง</button>${owned(i.id)?`<button data-use="${i.id}">ใช้ใน Studio</button>`:S.cart.includes(i.id)?'<button disabled>อยู่ในตะกร้า</button>':`<button class="pri" data-add="${i.id}">ใส่ตะกร้า</button>`}</div></div></div>`).join('')||'<div class="empty">ไม่พบผลงานที่ตรงกับการค้นหา</div>'}
+let mPrev=null;const pvCan=document.createElement('canvas');pvCan.width=960;pvCan.height=540;const mR=Renderer(pvCan);
+function preview(id){const i=allItems().find(x=>x.id===id);modal(`<div class="dhead"><h3 style="margin:0">${esc(i.name)}</h3><button data-x>ปิด</button></div><div id="pvH"></div>
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap"><div><div class="mu sm">โดย ${esc(i.by)} · ${CATS[i.cat]} · เอฟเฟกต์ ${FX[i.fx].th}</div><div>${esc(i.desc)}</div></div><div style="display:flex;gap:8px;align-items:center"><b style="font-size:20px">${baht(i.price)}</b>${owned(i.id)?`<button class="pri" data-use="${i.id}">ใช้ใน Studio</button>`:`<button class="pri" data-add="${i.id}">ใส่ตะกร้า</button>`}</div></div><p class="note">ตัวอย่างแสดงผลแบบเรียลไทม์ ไฟล์จริงเป็นพรีเซ็ตที่ปรับต่อได้ใน Studio</p>`);
+ $('#pvH').replaceWith(pvCan);mPrev=full(i.fx,i.p)}
+document.addEventListener('click',e=>{const d=e.target.dataset;if(d.pv)preview(d.pv);else if(d.add)addCart(d.add);else if(d.use)useItem(d.use)});
+function addCart(id){if(!S.cart.includes(id))S.cart.push(id);save();renderCart();renderMarket();if($('#modal').classList.contains('act'))closeM();toast('เพิ่มลงตะกร้าแล้ว')}
+function useItem(id){const i=allItems().find(x=>x.id===id);snap();const s=mkS(i.name,i.fx,[.3,.25,.7,.75],i.p);P.surfaces.push(s);sel=s.id;closeM();go('studio');renderAll();save();toast('เพิ่ม "'+i.name+'" เป็นเลเยอร์ใหม่แล้ว')}
+function renderCart(){const L=S.cart.map(id=>allItems().find(x=>x.id===id)).filter(Boolean);$('#cartN').textContent=L.length;
+ $('#citems').innerHTML=L.map(i=>`<div class="ci"><img src="${thumb(i)}" alt=""><div><b>${esc(i.name)}</b><div class="sm mu">${baht(i.price)}</div></div><button data-rm="${i.id}">ลบ</button></div>`).join('')||'<div class="empty">ตะกร้าว่าง</div>';
+ $('#ctot').textContent=baht(L.reduce((a,i)=>a+i.price,0));$('#checkout').disabled=!L.length}
+$('#citems').onclick=e=>{const id=e.target.dataset.rm;if(id){S.cart=S.cart.filter(x=>x!==id);save();renderCart();renderMarket()}};
+$('#cartBtn').onclick=()=>$('#cart').classList.toggle('act');$('#cartX').onclick=()=>$('#cart').classList.remove('act');
+$('#checkout').onclick=()=>{const L=S.cart.map(id=>allItems().find(x=>x.id===id)).filter(Boolean),tot=L.reduce((a,i)=>a+i.price,0);
+ modal(`<div class="dhead"><h3 style="margin:0">ชำระเงิน</h3><button data-x>ปิด</button></div><p>${L.length} รายการ · ยอดรวม <b>${baht(tot)}</b></p>
+ <div class="pay"><label><input type="radio" name="pm" value="PromptPay" checked> PromptPay QR</label><label><input type="radio" name="pm" value="บัตรเครดิต/เดบิต"> บัตรเครดิต/เดบิต</label><label><input type="radio" name="pm" value="TrueMoney Wallet"> TrueMoney Wallet</label></div>
+ <p class="sm" style="color:var(--warn)">โหมดทดลอง: ไม่มีการตัดเงินจริง ระบบจริงจะเชื่อมต่อ Payment Gateway ในขั้นตอนนี้</p><button id="pay" class="pri" style="width:100%">ยืนยันการสั่งซื้อ (ทดลอง)</button>`);
+ $('#pay').onclick=()=>{const pm=document.querySelector('input[name=pm]:checked').value,d=new Date().toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+  L.forEach(i=>S.purchases.push({item:i.id,date:d,pm,key:'DEMO-'+uid().toUpperCase()+'-'+uid().toUpperCase().slice(0,4)}));S.cart=[];save();renderCart();renderMarket();renderLib();$('#cart').classList.remove('act');
+  modal(`<div class="dhead"><h3 style="margin:0">สั่งซื้อสำเร็จ</h3><button data-x>ปิด</button></div><p>ไฟล์ทั้ง ${L.length} รายการพร้อมใช้งานในเมนู "ผลงานของฉัน" แล้ว</p><button class="pri" id="toLib">ไปที่ My Downloads</button>`);$('#toLib').onclick=()=>{closeM();go('lib')}}};
+
+/* ---------- library ---------- */
+function renderLib(){$('#plist').innerHTML=S.projects.map(p=>`<div class="card"><div class="bd"><b>${esc(p.name)}</b><div class="sm mu">${p.date} · ${p.data.surfaces.length} เลเยอร์</div><div class="ft"><button data-op="${p.id}" class="pri">เปิด</button><button data-dp="${p.id}">ลบ</button></div></div></div>`).join('')||'<div class="empty">ยังไม่มีโปรเจกต์ที่บันทึก กด "บันทึกโปรเจกต์ปัจจุบัน"</div>';
+ const D=S.purchases.map(p=>({...p,i:allItems().find(x=>x.id===p.item)})).filter(p=>p.i);
+ $('#dlist').innerHTML=D.length?`<div class="box" style="padding:6px 12px"><table><thead><tr><th>ผลงาน</th><th>วันที่ซื้อ</th><th>License (ทดลอง)</th><th></th></tr></thead><tbody>${D.map(p=>`<tr><td><b>${esc(p.i.name)}</b><div class="sm mu">${CATS[p.i.cat]}</div></td><td>${p.date}</td><td class="key">${p.key}</td><td class="n"><button data-use="${p.i.id}">ใช้ใน Studio</button> <button data-pj="${p.i.id}">ไฟล์พรีเซ็ต</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">ยังไม่มีไฟล์ที่ซื้อ</div>'}
+$('#saveP').onclick=()=>{const d=new Date().toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'});const ex=S.projects.find(p=>p.name===P.name);const data=JSON.parse(JSON.stringify(P));
+ if(ex){ex.data=data;ex.date=d}else S.projects.unshift({id:uid(),name:P.name||'ไม่มีชื่อ',date:d,data});save();renderLib();toast('บันทึกโปรเจกต์แล้ว')};
+$('#v-lib').addEventListener('click',e=>{const d=e.target.dataset;
+ if(d.op){const p=S.projects.find(x=>x.id===d.op);snap();P=JSON.parse(JSON.stringify(p.data));sel=P.surfaces[0]?.id;go('studio');renderAll();save()}
+ if(d.dp){const p=S.projects.find(x=>x.id===d.dp);modal(`<div class="dhead"><h3 style="margin:0">ลบโปรเจกต์ "${esc(p.name)}"?</h3></div><p class="mu">ลบแล้วกู้คืนไม่ได้</p><div class="two"><button data-x>ยกเลิก</button><button class="pri" id="cDel">ลบ</button></div>`);$('#cDel').onclick=()=>{S.projects=S.projects.filter(x=>x!==p);save();renderLib();closeM()}}
+ if(d.pj){const i=allItems().find(x=>x.id===d.pj);const txt=JSON.stringify({app:'LUMINA STUDIO',preset:{name:i.name,effect:FX[i.fx].th,fx:i.fx,params:i.p}},null,1);offer(i.name.replace(/\W+/g,'_')+'.json',txt,()=>jsonFallback(txt,'ไฟล์พรีเซ็ต'))}});
+
+/* ---------- creator ---------- */
+$('#pubC').innerHTML=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+$('#comm').value=S.comm;$('#comm').onchange=e=>{S.comm=clamp(+e.target.value||0,0,60);e.target.value=S.comm;save();renderCreator()};
+$('#pub').onsubmit=e=>{e.preventDefault();const s=cur()||mkS('x',1,[0,0,1,1]);const fx=s.fx===0?1:s.fx;
+ S.mine.push({id:'u'+uid(),name:$('#pubN').value.trim(),by:'คุณ',cat:$('#pubC').value,price:Math.max(0,+$('#pubP').value),fx,p:{...s.p},desc:$('#pubD').value.trim()||'ผลงานจาก Creator',t:Date.now()});
+ save();e.target.reset();$('#pubP').value=490;renderCreator();renderMarket();toast('วางขายแล้ว ดูได้ใน Marketplace')};
+$('#simS').onclick=()=>{if(!S.mine.length)return toast('ยังไม่มีสินค้าที่วางขาย');const i=S.mine[Math.floor(Math.random()*S.mine.length)];S.sales.push({item:i.id,price:i.price,date:new Date().toLocaleDateString('th-TH',{day:'numeric',month:'short'})});save();renderCreator();toast('ขาย "'+i.name+'" ได้ 1 รายการ')};
+function renderCreator(){const g=S.sales.reduce((a,s)=>a+s.price,0),fee=g*S.comm/100;$('#pubFrom').textContent=cur()?cur().name+' ('+FX[cur().fx===0?1:cur().fx].th+')':'ยังไม่ได้เลือก';
+ $('#kpis').innerHTML=[['ยอดขายรวม',baht(g)],['ค่าคอมมิชชัน '+S.comm+'%',baht(fee)],['รายได้สุทธิ',baht(g-fee)],['สินค้าที่วางขาย',S.mine.length+' รายการ']].map(([l,v])=>`<div class="kpi"><span class="mu sm">${l}</span><b>${v}</b></div>`).join('');
+ $('#mine').innerHTML=S.mine.length?`<table><thead><tr><th>ผลงาน</th><th class="n">ราคา</th><th class="n">ขายได้</th><th></th></tr></thead><tbody>${S.mine.map(i=>`<tr><td><b>${esc(i.name)}</b><div class="sm mu">${CATS[i.cat]}</div></td><td class="n"><input type="number" data-pr="${i.id}" value="${i.price}" min="0" step="10" style="width:90px"></td><td class="n">${S.sales.filter(s=>s.item===i.id).length}</td><td class="n"><button data-un="${i.id}">เลิกขาย</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">ยังไม่มีสินค้า</div>';
+ const sl=[...S.sales].reverse().slice(0,8);$('#sales').innerHTML=sl.length?`<table><thead><tr><th>วันที่</th><th>ผลงาน</th><th class="n">ราคา</th><th class="n">สุทธิ</th></tr></thead><tbody>${sl.map(s=>`<tr><td>${s.date}</td><td>${esc(S.mine.find(m=>m.id===s.item)?.name||'(เลิกขายแล้ว)')}</td><td class="n">${baht(s.price)}</td><td class="n">${baht(s.price*(1-S.comm/100))}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">ยังไม่มีการขาย</div>'}
+$('#mine').addEventListener('change',e=>{const id=e.target.dataset.pr;if(id){S.mine.find(m=>m.id===id).price=Math.max(0,+e.target.value);save();renderMarket()}});
+$('#mine').addEventListener('click',e=>{const id=e.target.dataset.un;if(id){S.mine=S.mine.filter(m=>m.id!==id);S.cart=S.cart.filter(x=>x!==id);save();renderCreator();renderMarket();renderCart()}});
+
+/* ---------- nav & loop ---------- */
+function go(v){$$('nav button').forEach(b=>b.classList.toggle('act',b.dataset.v===v));$$('.view').forEach(x=>x.classList.toggle('act',x.id==='v-'+v));if(v==='creator')renderCreator();if(v==='lib')renderLib();if(v==='market')renderMarket();try{history.replaceState(null,'','#'+v)}catch(_){}}
+$('nav').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.v)};
+function renderAll(){$('#pname').value=P.name||'';$('#dur').value=P.dur;$('#scrub').max=P.dur;renderLayers();renderInsp();renderTracks()}
+let last=performance.now(),fc=0;
+function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;if(playing){t+=dt;if(t>=P.dur)t%=P.dur}
+ if(AN&&audEl&&!audEl.paused){AN.getByteFrequencyData(AD);let s=0;for(let i=0;i<16;i++)s+=AD[i];level=level*.6+(s/16/255)*.4}else level*=.9;
+ if($('#v-studio').classList.contains('act')){if(R)R.draw(P.surfaces,t,{dur:P.dur,test:testOn,aud:level});drawOv();
+  if(++fc%3===0){$('#scrub').value=t;$('#time').textContent=fmtT(t)+' / '+fmtT(P.dur);$('#lvl').style.width=Math.round(level*100)+'%';$$('#tracks .ph').forEach(b=>b.style.left=t/P.dur*100+'%');$('#badge').textContent=P.surfaces.length+' เลเยอร์ · 1920×1080'+(testOn?' · ภาพทดสอบ':'')}}
+ if(mR&&mPrev)mR.draw([mPrev],now/1000,{nofade:1});
+ requestAnimationFrame(loop)}
+applyRef();renderAll();renderCart();
+const h=location.hash.slice(1);if(['market','lib','creator'].includes(h))go(h);
+requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
