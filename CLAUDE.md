@@ -34,7 +34,7 @@
 
 ## Roadmap
 1. ✅ พอร์ต Mapping Engine จากต้นแบบเป็น TypeScript modules + หน้า Studio
-2. 🔶 Supabase: สมัครสมาชิก/ล็อกอิน (Google), บันทึกโปรเจกต์บนคลาวด์, อัปโหลดสื่อ — โค้ดเสร็จ รอทดสอบกับโปรเจกต์ Supabase จริง
+2. ✅ Supabase: สมัครสมาชิก/ล็อกอิน (Google), บันทึกโปรเจกต์บนคลาวด์, อัปโหลดสื่อ
 3. Marketplace จริง: สินค้า, ตะกร้า, ชำระเงิน (test mode), License, ลิงก์ดาวน์โหลดหมดอายุ
 4. Creator Center: วางขาย, ค่าคอมมิชชัน, รายงานรายได้, payout
 5. Desktop Output (Electron/Tauri): multi-projector, edge blending, sync, interactive sensor
