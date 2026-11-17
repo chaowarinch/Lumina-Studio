@@ -1,26 +1,185 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Dark Studio — สีและขนาดตามต้นแบบ (prototype/index.html) */
+@theme {
+  --color-bg: #0d0e11;
+  --color-pn: #15171b;
+  --color-pn2: #1c1f24;
+  --color-ln: #2a2e35;
+  --color-ink: #eceef2;
+  --color-mu: #9aa1ad;
+  --color-ac: #ff5a3c;
+  --color-ac2: #ff8a70;
+  --color-ok: #2ec4b6;
+  --color-warn: #f5b301;
+  --color-stage: #08090b;
+  --color-field: #0f1114;
+  --font-sans: var(--font-plex-thai), system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: dark;
+  }
+  * {
+    min-width: 0;
+  }
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font: 15px/1.5 var(--font-sans);
+    overflow-x: clip;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+  label {
+    font-size: 13px;
+    color: var(--color-mu);
+  }
+  h2 {
+    font-size: 22px;
+    line-height: 1.2;
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 15px;
+    margin: 0 0 8px;
+    font-weight: 600;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .btn {
+    background: var(--color-pn2);
+    border: 1px solid var(--color-ln);
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    min-height: 36px;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    border-color: #3d434d;
+    background: #23272d;
+  }
+  .btn:focus-visible,
+  .field:focus-visible {
+    outline: 2px solid var(--color-ac2);
+    outline-offset: 1px;
+  }
+  .btn.pri {
+    background: var(--color-ac);
+    border-color: var(--color-ac);
+    color: #fff;
+    font-weight: 600;
+  }
+  .btn.pri:hover {
+    background: #ff6e54;
+  }
+  .btn.on {
+    border-color: var(--color-ac);
+    color: var(--color-ac2);
+    background: #2a1a17;
+  }
+  .btn.ghost {
+    background: none;
+  }
+  .btn.sm {
+    min-height: 28px;
+    padding: 2px 8px;
+    font-size: 12px;
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+  .field {
+    background: var(--color-field);
+    border: 1px solid var(--color-ln);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 15px;
+    width: 100%;
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--color-ac);
+  }
+  .sec {
+    border-top: 1px solid var(--color-ln);
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+  .hint {
+    font-size: 13px;
+    color: var(--color-mu);
+  }
+  .tsep {
+    width: 1px;
+    height: 24px;
+    background: var(--color-ln);
+    margin: 0 2px;
+  }
+}
+
+/* เวที: ภาพอ้างอิง + WebGL + overlay ซ้อนกัน */
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: min(100%, calc((100vh - 330px) * 16 / 9));
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--color-ln), 0 20px 60px #000;
+}
+.stage > .layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.stage img.layer {
+  object-fit: cover;
+  opacity: 0.9;
+}
+.stage .gl {
+  mix-blend-mode: screen;
+}
+.stage.noref .gl {
+  mix-blend-mode: normal;
+}
+.stage.noref img.layer {
+  display: none;
+}
+.stage .ov {
+  touch-action: none;
+}
+.stage:fullscreen {
+  max-width: none;
+  border-radius: 0;
+}
+.stage:fullscreen img.layer,
+.stage:fullscreen .ov,
+.stage:fullscreen .badge {
+  display: none;
+}
+.stage:fullscreen .gl {
+  mix-blend-mode: normal;
+}
+
+@media (max-width: 1000px) {
+  .stage {
+    max-width: 100%;
+  }
 }
