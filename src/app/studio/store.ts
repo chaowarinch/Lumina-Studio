@@ -178,9 +178,9 @@ export function effectPatch(s: Surface, fx: number): Partial<Surface> {
 // ---------------- autosave (localStorage) ----------------
 const STORAGE_KEY = "lumina.studio.current";
 
-/** โหลดงานล่าสุดจากเบราว์เซอร์ หรือโปรเจกต์ตัวอย่าง (เรียกครั้งเดียวฝั่ง client) */
-export function hydrateStudio(): void {
-  if (useStudio.getState().hydrated) return;
+/** โหลดงานล่าสุดจากเบราว์เซอร์ หรือโปรเจกต์ตัวอย่าง */
+export function hydrateStudio(force = false): void {
+  if (useStudio.getState().hydrated && !force) return;
   if (!restoreFromStorage()) useStudio.getState().loadProject(sampleProject());
 }
 
@@ -197,10 +197,11 @@ function restoreFromStorage(): boolean {
   }
 }
 
-export function startAutosave(): () => void {
+/** autosave ลงเบราว์เซอร์ (เฉพาะเมื่อ shouldSave() เป็นจริง เช่น ไม่ได้เปิดโปรเจกต์บนคลาวด์) */
+export function startAutosave(shouldSave: () => boolean = () => true): () => void {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const unsub = useStudio.subscribe((s, prev) => {
-    if (s.project === prev.project) return;
+    if (s.project === prev.project || !shouldSave()) return;
     clearTimeout(timer);
     timer = setTimeout(() => {
       try {

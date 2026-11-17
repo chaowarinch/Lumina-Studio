@@ -9,6 +9,8 @@ export const APP_ID = "LUMINA STUDIO";
 /** เวอร์ชันรูปแบบไฟล์ (เข้ากันได้กับต้นแบบ v2) */
 export const FILE_VERSION = 2;
 export const MAX_SURFACES = 200;
+/** id ของสื่อบนคลาวด์ = uuid ของแถวใน media_assets */
+const CLOUD_MEDIA_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const finite = z.number().refine(Number.isFinite);
 const vec2 = z.tuple([finite, finite]);
@@ -86,8 +88,8 @@ export function parseProject(data: unknown): ParseResult {
       pts: s.pts,
       mask: s.mask,
       maskInv: s.maskInv,
-      // ไฟล์ภาพ/วิดีโอไม่ถูกบันทึกไปกับโปรเจกต์
-      media: null,
+      // เก็บเฉพาะ id ของสื่อบนคลาวด์ (uuid) — สื่อในเครื่องไม่ได้ถูกบันทึกไปกับไฟล์
+      media: s.media && CLOUD_MEDIA_ID.test(s.media) ? s.media : null,
       ...span,
       vis: s.vis,
     };

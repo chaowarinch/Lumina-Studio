@@ -19,6 +19,13 @@ describe("project schema", () => {
     expect(r.project.surfaces[0].media).toBeNull();
   });
 
+  it("เก็บ id สื่อบนคลาวด์ (uuid) แต่ล้าง id สื่อในเครื่อง", () => {
+    const pts = [[0, 0], [1, 0], [0, 1], [1, 1]];
+    const cloud = "1dbd5a32-0643-40ef-93e4-8e8b5a20805e";
+    const r = parseProject({ surfaces: [{ fx: 0, pts, media: cloud }, { fx: 0, pts, media: "k3j4h5g6" }] });
+    expect(r.ok && r.project.surfaces.map((s) => s.media)).toEqual([cloud, null]);
+  });
+
   it("serialize → parse ได้ข้อมูลเดิม", () => {
     const p = sampleProject();
     const r = parseProjectJson(serializeProject(p));

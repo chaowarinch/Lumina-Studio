@@ -29,11 +29,12 @@
 - โค้ด engine ต้องมี unit test (Vitest) โดยเฉพาะ homography และ mesh warp
 - ทุกข้อความ UI เป็นภาษาไทย ใช้ฟอนต์ IBM Plex Sans Thai (ข้อความรวมไว้ที่ `src/lib/i18n/th.ts`)
 - ห้าม commit คีย์ลับ ใช้ `.env.local` และ `.env.example`
-- รัน `npm run lint` และ `npm test` ให้ผ่านก่อนบอกว่างานเสร็จ
+- รัน `npm run lint` และ `npm test` ให้ผ่านก่อนบอกว่างานเสร็จ (แก้ migration แล้วรัน `npm run test:db` ด้วย)
+- ข้อมูลผู้ใช้เข้าถึงผ่าน Supabase client ฝั่งเบราว์เซอร์ + RLS เท่านั้น ห้ามใช้ service role key ในแอป
 
 ## Roadmap
 1. ✅ พอร์ต Mapping Engine จากต้นแบบเป็น TypeScript modules + หน้า Studio
-2. Supabase: สมัครสมาชิก/ล็อกอิน, บันทึกโปรเจกต์บนคลาวด์, อัปโหลดสื่อ
+2. 🔶 Supabase: สมัครสมาชิก/ล็อกอิน (Google), บันทึกโปรเจกต์บนคลาวด์, อัปโหลดสื่อ — โค้ดเสร็จ รอทดสอบกับโปรเจกต์ Supabase จริง
 3. Marketplace จริง: สินค้า, ตะกร้า, ชำระเงิน (test mode), License, ลิงก์ดาวน์โหลดหมดอายุ
 4. Creator Center: วางขาย, ค่าคอมมิชชัน, รายงานรายได้, payout
 5. Desktop Output (Electron/Tauri): multi-projector, edge blending, sync, interactive sensor

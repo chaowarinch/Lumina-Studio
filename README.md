@@ -6,9 +6,11 @@
 
 ```bash
 npm install
-cp .env.example .env.local   # Phase 2 เป็นต้นไป
+cp .env.example .env.local   # ใส่ค่า Supabase (ดู docs/setup-supabase.md)
 npm run dev                  # http://localhost:3000/studio
 ```
+
+ไม่ตั้งค่า Supabase ก็ใช้ Studio ได้ (โหมดผู้เยี่ยมชม เก็บงานในเบราว์เซอร์)
 
 | คำสั่ง | หน้าที่ |
 |---|---|
@@ -17,6 +19,7 @@ npm run dev                  # http://localhost:3000/studio
 | `npm run lint` | ESLint |
 | `npm test` | unit test (Vitest) |
 | `npm run typecheck` | TypeScript |
+| `npm run test:db` | ทดสอบ migration + RLS บน PostgreSQL ในเครื่อง |
 
 ## โครงสร้าง
 
@@ -30,12 +33,31 @@ src/engine/              Mapping Engine (TypeScript ล้วน ไม่ผู
   history/ project/      undo/redo, schema ไฟล์โปรเจกต์ (zod)
   export/                PNG / WebM / JSON
 src/app/studio/          Mapping Studio (Zustand store + คอมโพเนนต์)
-src/app/market|library|creator/   หน้าโครง (Phase 2–4)
+src/app/library/         My Projects (คลาวด์)
+src/app/login/, auth/    เข้าสู่ระบบด้วย Google (Supabase Auth)
+src/app/market|creator/  หน้าโครง (Phase 3–4)
+src/lib/supabase/        client ฝั่งเบราว์เซอร์/ server, ชนิดข้อมูล DB
+src/lib/cloud/           บันทึกโปรเจกต์, อัปโหลดสื่อ, คิว autosave
+src/lib/auth/            สถานะล็อกอิน
+src/proxy.ts             ต่ออายุ session (Next 16 proxy)
 src/lib/i18n/th.ts       ข้อความ UI ภาษาไทยทั้งหมด
+supabase/migrations/     SQL schema + RLS + Storage policies
+supabase/tests/          ทดสอบ RLS
+docs/setup-supabase.md   คู่มือตั้งค่า Supabase + Google OAuth
 ```
+
+## การบันทึกงาน
+
+| โหมด | เก็บที่ | สื่อภาพ/วิดีโอ |
+|---|---|---|
+| ผู้เยี่ยมชม | localStorage ของเบราว์เซอร์ | อยู่ในเครื่องเท่านั้น (หายเมื่อรีโหลด) |
+| เข้าสู่ระบบ | ตาราง `projects` (autosave 2 วินาทีหลังแก้ไข, `/studio?p=<id>`) | อัปโหลดขึ้น bucket `media` (≤ 50 MB/ไฟล์) |
+
+บันทึกแบบ optimistic concurrency ด้วยคอลัมน์ `version`: ถ้าโปรเจกต์ถูกบันทึกจากแท็บอื่นก่อน
+จะไม่เขียนทับ แต่ถามให้เลือก "บันทึกเป็นสำเนา" หรือ "โหลดเวอร์ชันล่าสุด"
 
 ## รูปแบบไฟล์โปรเจกต์
 
 `{ "app": "LUMINA STUDIO", "version": 2, "project": { name, dur, surfaces[] } }`
 — เข้ากันได้กับไฟล์ที่ส่งออกจากต้นแบบ, ตรวจด้วย schema ก่อนนำเข้าทุกครั้ง
-ภาพ/วิดีโอที่ใช้ในเลเยอร์สื่อไม่ถูกบันทึกไปกับไฟล์ (จะย้ายไป Supabase Storage ใน Phase 2)
+`surface.media` เก็บ id ของสื่อบนคลาวด์ (uuid ใน `media_assets`) ส่วนสื่อในเครื่องจะถูกล้างเมื่อบันทึกเป็นไฟล์

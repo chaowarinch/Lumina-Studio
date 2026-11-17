@@ -5,6 +5,7 @@ import { parseProjectJson, serializeProject } from "@/engine/project/schema";
 import { th } from "@/lib/i18n/th";
 import { pickFile, runtime } from "../runtime";
 import { selectedSurface, useStudio } from "../store";
+import { CloudControls } from "./CloudControls";
 
 export function Toolbar({ stageRef }: { stageRef: React.RefObject<HTMLDivElement | null> }) {
   const tool = useStudio((s) => s.tool);
@@ -119,6 +120,7 @@ export function Toolbar({ stageRef }: { stageRef: React.RefObject<HTMLDivElement
         {th.tools.import}
       </button>
       <div className="flex-1" />
+      <CloudControls />
       <button className="btn pri" onClick={fullscreen}>
         {th.tools.project}
       </button>
